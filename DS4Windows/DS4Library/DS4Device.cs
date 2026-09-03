@@ -1,4 +1,4 @@
-﻿/*
+/*
 DS4Windows
 Copyright (C) 2023  Travis Nickles
 
@@ -733,7 +733,10 @@ namespace DS4Windows
             //    CheckOutputReportTypes();
             //}
 
-            sendOutputReport(true, true, false); // initialize the output report (don't force disconnect the gamepad on initialization even if writeData fails because some fake DS4 gamepads don't support writeData over BT)
+            if (conType == ConnectionType.BT)
+            {
+                sendOutputReport(true, true, false); // initialize the output report (don't force disconnect the gamepad on initialization even if writeData fails because some fake DS4 gamepads don't support writeData over BT)
+            }
         }
 
         // TODO: Possibly remove method
@@ -1180,7 +1183,7 @@ namespace DS4Windows
                             {
                                 int winError = Marshal.GetLastWin32Error();
                                 Console.WriteLine($"{Mac} {DateTime.UtcNow.ToString("o")}> disconnect due to read failure: {winError.ToString("x8")}");
-                                //Log.LogToGui(Mac.ToString() + " disconnected due to read failure: " + winError, true);
+                                AppLogger.LogToGui($"{Mac} disconnected due to read failure: 0x{winError:X8} ({winError})", true);
                             }
 
                             readWaitEv.Reset();

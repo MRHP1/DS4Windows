@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.IO;
@@ -174,10 +174,19 @@ namespace DS4Windows
             if (PInvoke.ReadFile(SafeReadHandle, inputBuffer, null, &ov))
                 return ReadStatus.Success;
 
-            if (Marshal.GetLastWin32Error() != (uint)WIN32_ERROR.ERROR_IO_PENDING) return ReadStatus.ReadError;
-
-            if (!PInvoke.GetOverlappedResultEx(SafeReadHandle, ov, out _, timeout, true))
+            int lastErr = Marshal.GetLastWin32Error();
+            if (lastErr != (int)WIN32_ERROR.ERROR_IO_PENDING)
+            {
+                AppLogger.LogToGui($"ReadFile failed immediately: 0x{lastErr:X8} ({lastErr})", false);
                 return ReadStatus.ReadError;
+            }
+
+            if (!PInvoke.GetOverlappedResultEx(SafeReadHandle, ov, out _, timeout, false))
+            {
+                int ovErr = Marshal.GetLastWin32Error();
+                AppLogger.LogToGui($"GetOverlappedResultEx failed: 0x{ovErr:X8} ({ovErr})", false);
+                return ReadStatus.ReadError;
+            }
 
             return ReadStatus.Success;
         }
